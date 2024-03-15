@@ -1,0 +1,20 @@
+{
+	"authors": [
+		"Jonathan Matthew Samson"
+	],
+	"copyright": "Copyright © 2024, Jonathan Matthew Samson",
+	"dependencies": {
+		"dxml": "~>0.4.4"
+	},
+	"description": "A library for parsing .mzML files used in mass spectrometry.",
+	"license": "GPL-3.0-or-later",
+	"name": "mzml-d",
+	"targetType" : "library",
+	"buildTypes":
+	{
+		"unittest-release":
+		{
+			"buildOptions": ["unittests", "debugMode", "debugInfo", "releaseMode"]
+		}
+	}
+}
