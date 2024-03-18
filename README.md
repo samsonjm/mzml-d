@@ -4,8 +4,6 @@ A library for parsing .mzML files used in mass spectrometry
 ## Installation
 
 ### DUB
-Use
-
 ```dub add mzml-d```
 
 ### Github
@@ -15,8 +13,8 @@ Clone the repository to your local computer.  You can then either move the requi
 Example Usage:
 
 ```
-import mzmld.scans;
-import mzmld.mzmlparser;
+import scans;
+import mzmlparser;
 
 void main()
 {
