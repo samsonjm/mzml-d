@@ -32,7 +32,7 @@ real[] decode_mzml_string(
 	ubyte[] decoded = Base64.decode(encoded);
 	real[] output;
 	int byte_size = precision / 8;
-	enforce(compression == "none" || compression == "zlib",
+	enforce(compression == "none" || compression == "zlib" || compression == "no compression",
 			"Invalid compression type.");
 	enforce(precision == 64 || precision == 32,
 			"Invalid precision.");
