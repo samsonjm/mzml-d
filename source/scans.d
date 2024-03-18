@@ -177,14 +177,17 @@ class ScanFile
 			{
 				if(nextScan.level > 1)
 				{
-					int precursor_scan_number = precursor.spectrumRef.split("scan=")[1].split(" ")[0].to!int;
-					for(int scan_index=0; scan_index<scans.length - 1; ++scan_index)
+					if(precursor.spectrumRef.split("scan=").length > 1)
 					{
-						if(scans[scans.length - (scan_index + 1)].scan_number == precursor_scan_number)
+						int precursor_scan_number = precursor.spectrumRef.split("scan=")[1].split(" ")[0].to!int;
+						for(int scan_index=0; scan_index<scans.length - 1; ++scan_index)
 						{
-							++precursor_found;
-							nextScan.parent_scan ~= scans[scans.length - (scan_index + 1)];
-							break;
+							if(scans[scans.length - (scan_index + 1)].scan_number == precursor_scan_number)
+							{
+								++precursor_found;
+								nextScan.parent_scan ~= scans[scans.length - (scan_index + 1)];
+								break;
+							}
 						}
 					}
 					foreach(cvParam; precursor.isolationWindow.cvParams)
@@ -270,6 +273,7 @@ class ScanFile
 			{
 				int bit_size;
 				string compression_type;
+				string array_type;
 				foreach(cvParam; binaryDataArray.cvParams)
 				{
 					switch(cvParam.name)
@@ -296,24 +300,32 @@ class ScanFile
 						}
 						case "m/z array":
 						{
-							mz_array = decode_mzml_string(
-									binaryDataArray.binary.encodedData, 
-									compression_type,
-									bit_size);
+							array_type = "mz";
 							break;
 						}
 						case "intensity array":
 						{
-							intensity_array = decode_mzml_string(
-									binaryDataArray.binary.encodedData,
-									compression_type,
-									bit_size);
+							array_type = "int";
 							break;
 						}
 						default:
 						{
 						}
 					}
+				}
+				if(array_type == "int")
+				{
+						intensity_array = decode_mzml_string(
+								binaryDataArray.binary.encodedData,
+								compression_type,
+								bit_size);
+				}
+				else if (array_type == "mz")
+				{
+						mz_array = decode_mzml_string(
+								binaryDataArray.binary.encodedData, 
+								compression_type,
+								bit_size);
 				}
 			}
 			for(int peak_count=0; peak_count<mz_array.length; ++peak_count)
