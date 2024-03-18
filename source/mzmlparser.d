@@ -33,9 +33,9 @@ real[] decode_mzml_string(
 	real[] output;
 	int byte_size = precision / 8;
 	enforce(compression == "none" || compression == "zlib" || compression == "no compression",
-			"Invalid compression type.");
+			"Invalid compression type: " ~ compression);
 	enforce(precision == 64 || precision == 32,
-			"Invalid precision.");
+			"Invalid precision: " ~ precision.to!string);
 	if (compression=="zlib")
 	{
 		import std.zlib;
