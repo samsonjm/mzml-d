@@ -19,6 +19,6 @@ import mzmlparser;
 void main()
 {
     string myFileContents = read_file("testfile.mzML");
-    ScanFile myScanFile = parze_mzml(myFileContents);
+    ScanFile myScanFile = parse_mzml(myFileContents);
 }
 ```
