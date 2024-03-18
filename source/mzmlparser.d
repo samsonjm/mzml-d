@@ -1458,13 +1458,9 @@ ScanFile parse_mzml(string contents)
 		range.popFront();
 	}
 	scan.mzML = mzML;
-	writeln("populating scans");
 	scan.populate_scans();
-	writeln("setting scan count");
 	scan.set_scan_count();
-	writeln("setting start time");
 	scan.set_start_time();
-	writeln("setting end time");
 	scan.set_end_time();
 	return scan;
 }
