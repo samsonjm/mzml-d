@@ -15,10 +15,12 @@ Example Usage:
 ```
 import scans;
 import mzmlparser;
+import mzmlwriter;
 
 void main()
 {
-    string myFileContents = read_file("testfile.mzML");
+    string myFileContents = read_file("testfiles/mzML.tiny.pwiz.1.1.mzML");
     ScanFile myScanFile = parze_mzml(myFileContents);
+    generate_mzML_content(myScanFile, "./output.mzML");
 }
 ```

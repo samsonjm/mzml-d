@@ -77,12 +77,19 @@ void writeUserParam(T)(UserParam userParam, T content)
  * Params:
  *   scans = The array of scans to be included in the file
  *   compression = Peak list compression type - only "zlib" accepted
+ *	 encode_scans = Whether the unencoded MSXScan[] should be encoded
  *
  * Returns: the final content to be added to the mzML file
+ *
+ * If the unencoded MSXScan[] has been changed, encode_scans should
+ * be set to true
  */
-string generate_mzML_content(ScanFile scan, string filename, string compression = "none")
+string generate_mzML_content(ScanFile scan, string filename, string compression = "none", bool encode_scans = false)
 {
-	///TODO: update .mzML based on new/changed peaks/scans/etc
+	if(encode_scans)
+	{
+		scan.populate_scans();
+	}
 	auto app = appender!string();
 	app.writeXMLDecl!string();
 	auto content = xmlWriter(app);
@@ -949,6 +956,7 @@ string generate_mzML_content(ScanFile scan, string filename, string compression 
 	return content.output.data;
 }
 */
+
 unittest
 {
 	import std.stdio;

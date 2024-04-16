@@ -1,4 +1,4 @@
-/* Tools to parse mzML files into an MSXScan[].
+/* Tools to parse mzML files into an MzML object.
  * 
  * Author: Jonathan Samson
  * Date: 05-03-2024

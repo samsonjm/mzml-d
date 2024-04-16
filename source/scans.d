@@ -15,6 +15,7 @@ import std.algorithm;
 import std.array;
 import std.math.algebraic;
 import mzmlparser;
+import mzmlwriter;
 
 /// Holds relevant information of the scan, can be used to create
 /// .mzML or .mzXML files
@@ -30,6 +31,278 @@ class ScanFile
 	this()
 	{
 		mzML = new MzML;
+	}
+
+	/// Populates Spectrum based on the unencrypted scans
+	void populate_spectra()
+	{
+		CVParam[] default_spectrum_CV_Params = mzML.run.spectrumList.spectra[0].cvParams;
+		UserParam[] default_user_params = mzML.run.spectrumList.spectra[0].userParams;
+		string[uint] id_reference;
+		mzML.run.spectrumList = new SpectrumList;
+		uint index = 0;
+		foreach(scan; scans)
+		{
+			Spectrum next_spectrum = new Spectrum;
+			next_spectrum.index = index;
+			next_spectrum.id = "scanId=" ~ index.to!string; // Unsure how else to do ID
+			if(scan.scan_id != "")
+			{
+				UserParam my_user_param = new UserParam;
+				my_user_param.name = "OldScanId=" ~ scan.scan_id;
+				next_spectrum.userParams ~= my_user_param;
+				id_reference[index] = scan.scan_id;
+			}
+			++index;
+			next_spectrum.defaultArrayLength = scan.peaks.keys().length.to!int;
+			CVParam[] spectrum_CV_params = [];
+			foreach(param; default_spectrum_CV_Params)
+			{
+				CVParam next_param = new CVParam;
+				switch(param.accession)
+				{
+					case "MS:1000504":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.accession = param.accession;
+						next_param.name = param.name;
+						next_param.value = scan.base_peak_mz.to!string;
+						next_param.unitCVRef = param.unitCVRef;
+						next_param.unit_accession = param.unit_accession;
+						next_param.unitName = param.unitName;
+						spectrum_CV_params ~= next_param;
+						break;
+					}
+					case "MS:1000505":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.accession = param.accession;
+						next_param.name = param.name;
+						next_param.value = scan.base_peak_intensity.to!string;
+						next_param.unitCVRef = param.unitCVRef;
+						next_param.unit_accession = param.unit_accession;
+						next_param.unitName = param.unitName;
+						spectrum_CV_params ~= next_param;
+						break;
+					}
+					case "MS:1000285":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.accession = param.accession;
+						next_param.name = param.name;
+						next_param.value = sum(scan.peaks.values()).to!string;
+						next_param.unitCVRef = param.unitCVRef;
+						next_param.unit_accession = param.unit_accession;
+						next_param.unitName = param.unitName;
+						spectrum_CV_params ~= next_param;
+						break;
+					}
+					case "MS:1000511":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.accession = param.accession;
+						next_param.name = param.name;
+						next_param.value = scan.level.to!string;
+						break;
+					}
+					case "MS:1000579":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.value = param.value;
+						if(scan.level == 1)
+						{
+							next_param.accession = param.accession;
+							next_param.name = param.name;
+						}
+						else
+						{
+							next_param.accession = "MS:1000580";
+							next_param.name = "MSn spectrum";
+						}
+						break;
+					}
+					case "MS:1000580":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.value = param.value;
+						if(scan.level == 1)
+						{
+							next_param.accession = "MS:1000579";
+							next_param.name = "MS1 Spectrum";
+						}
+						else
+						{
+							next_param.accession = param.accession;
+							next_param.name = param.name;
+						}
+						break;
+					}
+					case "MS:1000528":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.accession = param.accession;
+						next_param.name = param.name;
+						next_param.value = minElement(scan.peaks.keys()).to!string;
+						next_param.unitCVRef = param.unitCVRef;
+						next_param.unit_accession = param.unit_accession;
+						next_param.unitName = param.unitName;
+						spectrum_CV_params ~= next_param;
+						break;
+					}
+					case "MS:1000527":
+					{	
+						next_param.cvRef = param.cvRef;
+						next_param.accession = param.accession;
+						next_param.name = param.name;
+						next_param.value = maxElement(scan.peaks.keys()).to!string;
+						next_param.unitCVRef = param.unitCVRef;
+						next_param.unit_accession = param.unit_accession;
+						next_param.unitName = param.unitName;
+						spectrum_CV_params ~= next_param;
+						break;
+					}
+					default:
+					{
+						spectrum_CV_params ~= param;
+						break;
+					}
+				}
+			}
+			next_spectrum.cvParams = spectrum_CV_params;
+			next_spectrum.scanList.count = 1;
+			CVParam next_param = new CVParam;
+			next_param.cvRef = "MS";
+			next_param.accession = "MS:1000795";
+			next_param.name = "no combination";
+			next_param.value = "";
+			next_spectrum.scanList.cvParams ~= next_param;
+			Scan my_scan = new Scan;
+			next_param = new CVParam;
+			next_param.cvRef = "MS";
+			next_param.accession = "MS:1000016";
+			next_param.name = "scan start time";
+			next_param.value = (scan.retention_time / 60).to!string;
+			next_param.unitCVRef = "UO";
+			next_param.unit_accession = "UI:0000031";
+			next_param.unitName = "minute";
+			my_scan.cvParams ~= next_param;
+			my_scan.scanWindowList.count = 1;
+			ScanWindow my_scan_window = new ScanWindow;
+			next_param = new CVParam;
+			next_param.cvRef = "MS";
+			next_param.accession = "MS:1000501";
+			next_param.name = "scan window lower limit";
+			next_param.value = minElement(scan.peaks.keys()).to!string;
+			next_param.unitCVRef = "MS";
+			next_param.unit_accession = "MS:1000040";
+			next_param.unitName = "m/z";
+			my_scan_window.cvParams ~= next_param;
+			next_param = new CVParam;
+			next_param.cvRef = "MS";
+			next_param.accession = "MS:1000500";
+			next_param.name = "scan window upper limit";
+			next_param.value = maxElement(scan.peaks.keys()).to!string;
+			next_param.unitCVRef = "MS";
+			next_param.unit_accession = "MS:1000040";
+			next_param.unitName = "m/z";
+			my_scan_window.cvParams ~= next_param;
+			my_scan.scanWindowList.scanWindows ~= my_scan_window;
+			next_spectrum.scanList.scans ~= my_scan;
+			if(scan.level > 1)
+			{
+				Precursor[] my_precursors;
+				foreach(precursor; scan.parent_scan)
+				{
+					Precursor next_precursor = new Precursor;
+					next_precursor.spectrumRef = precursor.scan_number.to!string;
+					CVParam isolation_target = new CVParam;
+					isolation_target.cvRef = "MS";
+					isolation_target.accession = "MS:1000827";
+					isolation_target.name = "isolation window target m/z";
+					isolation_target.value = scan.parent_peak.to!string;
+					isolation_target.unitCVRef = "MS";
+					isolation_target.unit_accession = "MS:1000040";
+					isolation_target.unitName = "m/z";
+					next_precursor.isolationWindow.cvParams ~= isolation_target;
+					SelectedIon next_ion = new SelectedIon;
+					CVParam ion_mz = new CVParam;
+					ion_mz.cvRef = "MS";
+					ion_mz.accession = "MS:1000744";
+					ion_mz.name = "selected ion m/z";
+					ion_mz.value = scan.parent_peak.to!string;
+					ion_mz.unitCVRef = "MS";
+					ion_mz.unit_accession = "MS:1000040";
+					ion_mz.unitName = "m/z";
+					next_ion.cvParams ~= ion_mz;
+					CVParam charge_state = new CVParam;
+					charge_state.cvRef = "MS";
+					charge_state.accession = "MS:1000041";
+					charge_state.name = "charge state";
+					charge_state.value = "1";
+					next_ion.cvParams ~= charge_state;
+					CVParam peak_intensity = new CVParam;
+					peak_intensity.cvRef = "MS";
+					peak_intensity.accession = "MS:1000042";
+					peak_intensity.name = "peak intensity";
+					peak_intensity.value = precursor.get_peak_intensity(precursor.parent_peak[0]).to!string;
+					peak_intensity.unitCVRef = "MS";
+					peak_intensity.unit_accession = "MS:1000131";
+					peak_intensity.unitName = "number of detector counts";
+					next_ion.cvParams ~= peak_intensity;
+					next_precursor.selectedIonList.selectedIons ~= next_ion;
+					next_precursor.selectedIonList.count = 1;
+					next_spectrum.precursorList.precursors ~= next_precursor;
+				}
+				next_spectrum.precursorList.count = next_spectrum.precursorList.precursors.length.to!int;
+			}
+			next_spectrum.binaryDataArrayList.count = 2;
+			BinaryDataArray mz_array = new BinaryDataArray;
+			CVParam float_type = new CVParam;
+			float_type.cvRef = "MS";
+			float_type.accession = "MS:1000523";
+			float_type.name = "64-bit float";
+			mz_array.cvParams ~= float_type;
+			CVParam compression = new CVParam;
+			compression.cvRef = "MS";
+			compression.accession = "MS:1000576";
+			compression.name = "no compression";
+			mz_array.cvParams ~= compression;
+			CVParam mz_label = new CVParam;
+			mz_label.cvRef = "MS";
+			mz_label.accession = "MS:1000514";
+			mz_label.name = "m/z array";
+			mz_label.unitCVRef = "MS";
+			mz_label.unit_accession = "MS:1000040";
+			mz_label.unitName = "m/z";
+			mz_array.cvParams ~= mz_label;
+			mz_array.binary.encodedData = encode_real_array(scan.peaks.keys(), "none", 64);
+			mz_array.encodedLength = mz_array.binary.encodedData.length.to!uint;
+			next_spectrum.binaryDataArrayList.binaryDataArrays ~= mz_array;
+			BinaryDataArray intensity_array = new BinaryDataArray;
+			float_type = new CVParam;
+			float_type.cvRef = "MS";
+			float_type.accession = "MS:1000523";
+			float_type.name = "64-bit float";
+			intensity_array.cvParams ~= float_type;
+			compression = new CVParam;
+			compression.cvRef = "MS";
+			compression.accession = "MS:1000576";
+			compression.name = "no compression";
+			intensity_array.cvParams ~= compression;
+			CVParam intensity_label = new CVParam;
+			intensity_label.cvRef = "MS";
+			intensity_label.accession = "MS:1000515";
+			intensity_label.name = "intensity array";
+			intensity_label.unitCVRef = "MS";
+			intensity_label.unit_accession = "MS:1000131";
+			intensity_label.unitName = "number of detector counts";
+			intensity_array.cvParams ~= intensity_label;
+			intensity_array.binary.encodedData = encode_real_array(scan.peaks.values(), "none", 64);
+			intensity_array.encodedLength = intensity_array.binary.encodedData.length.to!uint;
+			next_spectrum.binaryDataArrayList.binaryDataArrays ~= intensity_array;
+			mzML.run.spectrumList.spectra ~= next_spectrum;
+		}
+		mzML.run.spectrumList.count = mzML.run.spectrumList.spectra.length.to!int;
 	}
 
 	/// sets the number of signals in the current scan
@@ -59,6 +332,7 @@ class ScanFile
 		{
 			++spectrum_number;
 			MSXScan nextScan = new MSXScan;
+			nextScan.scan_id = spectrum.id;
 			if(spectrum.id.split("scan=").length > 1)
 			{
 				nextScan.scan_number = spectrum.id.split("scan=")[1].split(" ")[0].to!int;
@@ -201,7 +475,7 @@ class ScanFile
 								real closest_parent_mass = 0;
 								if(precursor_count == 0)
 								{
-									nextScan.parent_peak = 	parent_mz;
+									nextScan.parent_peak ~=	parent_mz;
 									break;
 								}
 								foreach(mass; nextScan.parent_scan[precursor_count].peaks.keys)
@@ -221,7 +495,7 @@ class ScanFile
 										}
 									}
 								}
-								nextScan.parent_peak = closest_parent_mass;
+								nextScan.parent_peak[0] = closest_parent_mass;
 								break;
 							}
 							case "isolation window lower offset":
@@ -343,6 +617,7 @@ class ScanFile
 class MS1Scan
 {
 	uint scan_number;			/// scan number in current chromatogram
+	string scan_id;				/// ID number of scan from mzml file
 	uint level;					/// ms level of the scan
 	uint peaks_count;			/// number of peaks present in scan
 	string polarity;			/// polarity of the scan
@@ -483,7 +758,7 @@ unittest
 class MSXScan : MS1Scan
 {
 	MSXScan[] parent_scan; /// Scan of parent peak
-	real parent_peak; /// mz of parent peak, may be same as selected_ion_mz
+	real[] parent_peak; /// mz of parent peak, may be same as selected_ion_mz
 	float iso_window_upper_offset; /// upper m/z offset for iso
 	float iso_window_lower_offset; /// lower m/z offset for iso
 	float[] selected_ion_mz; /// ions selected for fragmentation,
@@ -532,8 +807,8 @@ unittest
 	peaks[56.12356] = 5_235.12359;
 	assert(test.get_peak_intensity(56.12356) == 5_235.12359);
 	assert(test.peaks == peaks);
-	test.parent_peak = 244.1736908;
-	assert(test.parent_peak == 244.1736908);
+	test.parent_peak ~= 244.1736908;
+	assert(test.parent_peak[0] == 244.1736908);
 	test.parent_scan ~= parent;
 	assert(test.parent_scan[0] == parent);
 	assert(test.parent_scan[0] != notparent);
