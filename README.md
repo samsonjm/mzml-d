@@ -21,6 +21,7 @@ void main()
 {
     string myFileContents = read_file("testfiles/mzML.tiny.pwiz.1.1.mzML");
     ScanFile myScanFile = parze_mzml(myFileContents);
-    generate_mzML_content(myScanFile, "./output.mzML");
+    // Use/change ScanFile object
+    generate_mzML_content(myScanFile, "./output.mzML", encode_scans=true);
 }
 ```
