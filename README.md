@@ -20,7 +20,7 @@ import mzmlwriter;
 void main()
 {
     string myFileContents = read_file("testfiles/mzML.tiny.pwiz.1.1.mzML");
-    ScanFile myScanFile = parze_mzml(myFileContents);
+    ScanFile myScanFile = parse_mzml(myFileContents);
     // Use/change ScanFile object
     generate_mzML_content(myScanFile, "./output.mzML", encode_scans=true);
 }
