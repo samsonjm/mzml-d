@@ -306,6 +306,7 @@ ScanFile parse_mzml(string contents)
 	import std.stdio;
 	while(range.empty == false)
 	{
+		stderr.writeln(range.front.name ~ " " ~ range.front.type.to!string);
 		if (range.front.type == EntityType.elementStart ||
 				range.front.type == EntityType.elementEmpty)
 		{
@@ -974,6 +975,7 @@ ScanFile parse_mzml(string contents)
 					range.popFront();
 					while(range.front.type != EntityType.elementEnd)
 					{
+						stderr.writeln("	" ~ range.front.name ~ " " ~ range.front.type.to!string);
 						attr = range.front.attributes;
 						switch (range.front.name)
 						{
