@@ -69,7 +69,6 @@ real[] decode_mzml_string(
 unittest
 {
 	import std.stdio;
-	writeln("testing .mzML parser");
 	/*
 	import std.algorithm;
 	import std.math;
@@ -1014,7 +1013,7 @@ ScanFile parse_mzml(string contents)
 										&mzML.run.spectrumList.defaultDataProcessingRef);
 								mzML.run.spectrumList.count = spectraCount.to!int;
 								range.popFront();
-								writeln("Spectrum: " ~ range.front.name);
+								stderr.writeln("Spectrum: " ~ range.front.name);
 								for(int i=0; i<mzML.run.spectrumList.count; ++i)
 								{
 									mzML.run.spectrumList.spectra ~= parseMzmlSpectrum(&range);
@@ -1077,7 +1076,7 @@ ScanFile parse_mzml(string contents)
 												for(int j=0; j<nextChromatogram.binaryDataArrayList.count; ++j)
 												{
 													range.popFront();
-													writeln("binaryDataArray: " ~ range.front.name);
+													stderr.writeln("binaryDataArray: " ~ range.front.name);
 													nextChromatogram.binaryDataArrayList.binaryDataArrays ~= createBinaryDataArray(&range);
 												}
 												range.popFront();
@@ -1107,7 +1106,6 @@ ScanFile parse_mzml(string contents)
 				}
 			}
 		}
-
 		// Note that the following section will be removed when implementing indexedmzML
 		if(range.front.type == EntityType.elementEnd &&
 				range.front.name == "mzML")
