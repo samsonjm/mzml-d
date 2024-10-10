@@ -21,7 +21,6 @@ import std.algorithm;
 import dxml.parser;
 import std.array;
 
-
 /**
  * Decodes the mzML string that represents an array.
  * Params:
