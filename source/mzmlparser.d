@@ -333,6 +333,11 @@ ScanFile parse_mzml(string contents)
 					for(int i=0; i<mzML.cvList.count; ++i)
 					{
 						range.popFront();
+						if(range.front.type == EntityType.elementEnd &&
+								range.front.name == "cv")
+						{
+							range.popFront(); // Bruker .mzML needs this
+						}
 						attr = range.front.attributes;
 						CV nextCV = new CV;
 						attr.getAttrs("id",
@@ -344,6 +349,11 @@ ScanFile parse_mzml(string contents)
 							"URI",
 							&nextCV.URI);
 						mzML.cvList.cvs ~= nextCV;
+					}
+					if(range.front.type == EntityType.elementEnd &&
+							range.front.name == "cv")
+					{
+						range.popFront(); // Bruker .mzML needs this
 					}
 					range.popFront();
 					break;

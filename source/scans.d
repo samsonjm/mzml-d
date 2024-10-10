@@ -595,17 +595,23 @@ class ScanFile
 				}
 				if(array_type == "int")
 				{
+					if(binaryDataArray.binary.encodedData.length > 0)
+					{
 						intensity_array = decode_mzml_string(
 								binaryDataArray.binary.encodedData,
 								compression_type,
 								bit_size);
+					}
 				}
 				else if (array_type == "mz")
 				{
+					if(binaryDataArray.binary.encodedData.length > 0)
+					{
 						mz_array = decode_mzml_string(
 								binaryDataArray.binary.encodedData, 
 								compression_type,
 								bit_size);
+					}
 				}
 			}
 			for(int peak_count=0; peak_count<mz_array.length; ++peak_count)
